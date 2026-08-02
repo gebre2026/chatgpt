@@ -3,6 +3,8 @@ import "dotenv/config";
 
 import express from "express";
 import cors from "cors";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
 // Database connection pool
 import db from "./db/db.config.js";
@@ -19,6 +21,10 @@ const app = express();
 // Use PORT from environment or default to 5000
 const PORT = process.env.PORT || 5000;
 
+// ES Modules __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Parse incoming JSON request bodies
 app.use(express.json());
 
@@ -30,6 +36,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Mount all API routes under /api prefix
 app.use("/api", mainRouter);
+
+// Serve frontend static files in production
+app.use(express.static(join(__dirname, "public")));
+
+// SPA fallback - serve index.html for non-API routes
+app.get("*", (req, res) => {
+  res.sendFile(join(__dirname, "public", "index.html"));
+});
 
 // Register error handler middleware (must be after routes)
 app.use(errorHandler);
